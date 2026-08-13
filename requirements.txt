@@ -1,0 +1,10 @@
+torch
+torchvision
+segmentation-models-pytorch
+timm
+streamlit
+plotly
+pandas
+pillow
+numpy
+gdown

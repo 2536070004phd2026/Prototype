@@ -286,8 +286,7 @@ with st.sidebar:
             unsafe_allow_html=True)
 
     st.markdown("---")
-    st.caption("💡 Tip: use tiles from the dataset's `test_images` folder "
-               "for best results.")
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

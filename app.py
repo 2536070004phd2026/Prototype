@@ -63,6 +63,7 @@ MODELS = {
 #   3. The link looks like:
 #        https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQ/view?usp=sharing
 #      The FILE ID is the part between /d/ and /view :  1AbCdEfGhIjKlMnOpQ
+#
 
 GDRIVE_FILES = {
     "ConvNeXt.pth"         : "1dTO1xrc2y-sXet63mAQjX9eGcpFJC_sU",
@@ -305,26 +306,53 @@ with tab1:
     st.markdown('<div class="section-head">Upload a satellite image to classify land cover</div>',
                 unsafe_allow_html=True)
 
-    up_col, samp_col = st.columns([3, 1])
-    with up_col:
-        uploaded = st.file_uploader("Drag & drop a Sentinel-2 satellite tile",
+    # discover bundled sample images
+    import glob as _glob
+    sample_paths = sorted(
+        _glob.glob(os.path.join("samples", "*.png")) +
+        _glob.glob(os.path.join("samples", "*.jpg")) +
+        _glob.glob(os.path.join("samples", "*.jpeg")) +
+        _glob.glob(os.path.join("samples", "*.tif")) +
+        _glob.glob(os.path.join("samples", "*.tiff"))
+    )
+    sample_names = [os.path.basename(p) for p in sample_paths]
+
+    # two ways to provide an image: pick a sample, or upload your own
+    src_col1, src_col2 = st.columns(2)
+
+    with src_col1:
+        st.markdown("**🗂️ Choose a sample image**")
+        if sample_names:
+            choice = st.selectbox(
+                "Available sample tiles",
+                ["— none —"] + sample_names,
+                label_visibility="collapsed",
+                help="Pre-loaded Sentinel-2 tiles you can classify instantly")
+        else:
+            choice = "— none —"
+            st.caption("No sample images available.")
+
+    with src_col2:
+        st.markdown("**⬆️ Or upload your own**")
+        uploaded = st.file_uploader("Upload a Sentinel-2 satellite tile",
                                     type=["png", "jpg", "jpeg", "tif", "tiff"],
                                     label_visibility="collapsed")
-    with samp_col:
-        use_sample = st.button("🎲 Try a sample image", use_container_width=True)
 
-    # resolve the image source (upload OR bundled sample)
+    # thumbnail gallery of samples (click-free visual reference)
+    if sample_names:
+        with st.expander("👁️ Preview all sample images", expanded=False):
+            thumbs = st.columns(min(len(sample_paths), 5))
+            for i, sp in enumerate(sample_paths):
+                with thumbs[i % len(thumbs)]:
+                    st.image(sp, caption=sample_names[i], use_container_width=True)
+
+    # resolve the image source — an upload takes priority, else the chosen sample
     pil_img = None
     if uploaded is not None:
         pil_img = Image.open(uploaded)
-    elif use_sample or st.session_state.get("_use_sample"):
-        st.session_state["_use_sample"] = True
-        import glob as _glob
-        samples = sorted(_glob.glob(os.path.join("samples", "*")))
-        if samples:
-            pil_img = Image.open(samples[0])
-        else:
-            st.error("No sample images bundled. Upload your own image instead.")
+    elif choice != "— none —":
+        idx = sample_names.index(choice)
+        pil_img = Image.open(sample_paths[idx])
 
     if pil_img is not None:
 

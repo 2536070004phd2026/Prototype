@@ -267,16 +267,19 @@ st.markdown(f"""
 # ─────────────────────────────────────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# MODEL SELECTOR — appears in the sidebar (desktop) and main area (mobile).
+# The two are kept in sync through st.session_state["model_choice"].
+# ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Controls")
     model_name = st.selectbox("**Segmentation Model**", list(MODELS.keys()),
+                              key="model_choice",
                               help="Choose which trained model to run")
     enc, arch = MODELS[model_name]
     st.caption(f"Encoder: `{enc}`  •  Architecture: `{arch}`")
-
     st.markdown(f"**Compute device:** {dev_badge}", unsafe_allow_html=True)
     st.markdown("---")
-
     st.markdown("### 🎨 Land Cover Classes")
     for nm, col in zip(CLASS_NAMES, CLASS_COLORS):
         hexc = "#%02x%02x%02x" % tuple(col)
@@ -284,9 +287,17 @@ with st.sidebar:
             f'<div class="legend-chip"><span class="legend-swatch" '
             f'style="background:{hexc}"></span>{nm}</div>',
             unsafe_allow_html=True)
-
     st.markdown("---")
 
+
+# Mobile hint: the sidebar auto-collapses on phones, so tell users where it is.
+st.markdown("""
+<div style="background:#eef4fc;border:1px solid #d6e4f0;border-radius:10px;
+     padding:8px 14px;margin:6px 0 4px 0;font-size:13px;color:#1f3864;">
+  📱 <b>On mobile?</b> Tap the <b>»</b> arrow at the top-left for the full
+  controls &amp; class legend — or just use the model selector below.
+</div>
+""", unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -304,6 +315,18 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.markdown('<div class="section-head">Upload a satellite image to classify land cover</div>',
                 unsafe_allow_html=True)
+
+    # Main-area model selector (always visible, incl. mobile). Kept in sync with
+    # the sidebar by writing back into the shared "model_choice" session key.
+    _keys = list(MODELS.keys())
+    _main = st.radio("**Segmentation Model**", _keys,
+                     index=_keys.index(st.session_state.get("model_choice", _keys[0])),
+                     horizontal=True, key="model_main_radio")
+    st.session_state["model_choice"] = _main
+    model_name = _main
+    enc, arch = MODELS[model_name]
+    st.caption(f"Encoder: `{enc}`  •  Architecture: `{arch}`  •  "
+               f"Device: {'GPU' if DEVICE=='cuda' else 'CPU'}")
 
     # discover bundled sample images
     import glob as _glob

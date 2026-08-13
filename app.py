@@ -50,20 +50,7 @@ MODELS = {
     "ResNet"           : ("resnet34",                          "deeplabv3plus"),
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GOOGLE DRIVE AUTO-DOWNLOAD OF MODEL FILES
-# ─────────────────────────────────────────────────────────────────────────────
-# The trained model weights (.pth) and results.json are hosted on Google Drive
-# so the GitHub repo stays small. On first startup, they are downloaded once
-# into ./outputs. Replace the FILE IDs below with your own share-link IDs.
-#
-# HOW TO GET A FILE ID:
-#   1. Upload the file to Google Drive.
-#   2. Right-click -> Share -> "Anyone with the link" -> Copy link.
-#   3. The link looks like:
-#        https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQ/view?usp=sharing
-#      The FILE ID is the part between /d/ and /view :  1AbCdEfGhIjKlMnOpQ
-#
+
 
 GDRIVE_FILES = {
     "ConvNeXt.pth"         : "1dTO1xrc2y-sXet63mAQjX9eGcpFJC_sU",
@@ -193,6 +180,24 @@ st.markdown("""
     /* Rounded images */
     div[data-testid="stImage"] img { border-radius: 12px;
         box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+
+    /* Make the sidebar collapse/expand control large and visible everywhere */
+    button[data-testid="stSidebarCollapseButton"],
+    button[kind="header"],
+    [data-testid="collapsedControl"] {
+        background: #2e75b6 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        width: 40px !important; height: 40px !important;
+    }
+    [data-testid="collapsedControl"] svg,
+    button[data-testid="stSidebarCollapseButton"] svg {
+        color: white !important; fill: white !important;
+        width: 24px !important; height: 24px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -295,8 +300,9 @@ with st.sidebar:
 st.markdown("""
 <div style="background:#eef4fc;border:1px solid #d6e4f0;border-radius:10px;
      padding:8px 14px;margin:6px 0 4px 0;font-size:13px;color:#1f3864;">
-  📱 <b>On mobile?</b> Tap the <b>»</b> arrow at the top-left for the full
-  controls &amp; class legend — or just use the model selector below.
+  📱 <b>On mobile?</b> Everything you need is on this page — pick a model, choose
+  a sample image, and open the <b>Class Legend</b> below. (Extra controls are also
+  in the sidebar via the blue arrow at the top-left.)
 </div>
 """, unsafe_allow_html=True)
 
@@ -326,6 +332,20 @@ with tab1:
     enc, arch = MODELS[model_name]
     st.caption(f"Encoder: `{enc}`  •  Architecture: `{arch}`  •  "
                f"Device: {'GPU' if DEVICE=='cuda' else 'CPU'}")
+
+    # Class legend in the MAIN page (always reachable on mobile, no sidebar needed)
+    with st.expander("🎨 Land Cover Class Legend", expanded=False):
+        leg_cols = st.columns(2)
+        for i, (nm, col) in enumerate(zip(CLASS_NAMES, CLASS_COLORS)):
+            hexc = "#%02x%02x%02x" % tuple(col)
+            with leg_cols[i % 2]:
+                st.markdown(
+                    f'<div style="display:flex;align-items:center;padding:4px 0;">'
+                    f'<span style="width:18px;height:18px;border-radius:5px;'
+                    f'background:{hexc};margin-right:10px;border:1px solid #ccc;'
+                    f'display:inline-block;"></span>'
+                    f'<span style="font-size:15px;">{nm}</span></div>',
+                    unsafe_allow_html=True)
 
     # discover bundled sample images
     import glob as _glob

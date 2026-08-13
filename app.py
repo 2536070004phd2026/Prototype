@@ -7,11 +7,6 @@
  Research         : LULC Classification for Indian Regions using AI
 ───────────────────────────────────────────────────────────────────────────────
  A polished web UI to demonstrate the trained LULC segmentation models.
-
- RUN:
-     pip install streamlit torch torchvision segmentation-models-pytorch timm
-     pip install plotly pandas
-     streamlit run 04_app.py
 ═══════════════════════════════════════════════════════════════════════════════
 """
 

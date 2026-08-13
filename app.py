@@ -72,6 +72,7 @@ GDRIVE_FILES = {
     "results.json"         : "1l4SyjppZjDqAGn_X90AzpLhnNgIPwRBv",
 }
 
+
 def _ensure_models_downloaded():
     """Download model files from Google Drive on first run (once)."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -269,7 +270,7 @@ st.markdown(f"""
 # ─────────────────────────────────────────────────────────────────────────────
 # ─────────────────────────────────────────────────────────────────────────────
 # MODEL SELECTOR — appears in the sidebar (desktop) and main area (mobile).
-# The two are kept in sync through st.session_state["model_choice"].
+# Each has its own key; the main-area radio is the one Tab 1 uses.
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Controls")
@@ -316,14 +317,12 @@ with tab1:
     st.markdown('<div class="section-head">Upload a satellite image to classify land cover</div>',
                 unsafe_allow_html=True)
 
-    # Main-area model selector (always visible, incl. mobile). Kept in sync with
-    # the sidebar by writing back into the shared "model_choice" session key.
+    # Main-area model selector (always visible, incl. mobile). Uses its own key
+    # so it never clashes with the sidebar widget. This is the value tab 1 uses.
     _keys = list(MODELS.keys())
-    _main = st.radio("**Segmentation Model**", _keys,
-                     index=_keys.index(st.session_state.get("model_choice", _keys[0])),
-                     horizontal=True, key="model_main_radio")
-    st.session_state["model_choice"] = _main
-    model_name = _main
+    model_name = st.radio("**Segmentation Model**", _keys,
+                          index=_keys.index(st.session_state.get("model_choice", _keys[0])),
+                          horizontal=True, key="model_main_radio")
     enc, arch = MODELS[model_name]
     st.caption(f"Encoder: `{enc}`  •  Architecture: `{arch}`  •  "
                f"Device: {'GPU' if DEVICE=='cuda' else 'CPU'}")
